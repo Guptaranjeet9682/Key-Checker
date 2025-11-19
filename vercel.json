@@ -1,0 +1,19 @@
+{
+  "version": 2,
+  "routes": [
+    {
+      "src": "/verify/password",
+      "methods": ["GET"],
+      "dest": "/api/verify.js"
+    },
+    {
+      "src": "/getkey",
+      "methods": ["GET"],
+      "dest": "/api/getkey.js"
+    },
+    {
+      "src": "/",
+      "dest": "/public/index.html"
+    }
+  ]
+}
