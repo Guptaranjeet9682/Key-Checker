@@ -12,6 +12,7 @@
         .result { margin-top: 20px; padding: 10px; border-radius: 5px; }
         .valid { background: #d4edda; color: #155724; }
         .invalid { background: #f8d7da; color: #721c24; }
+        .loading { background: #fff3cd; color: #856404; }
     </style>
 </head>
 <body>
@@ -29,51 +30,87 @@
     </div>
 
     <script>
+        function formatTimestamp(timestamp) {
+            if (!timestamp) return 'Invalid Date';
+            const date = new Date(parseInt(timestamp));
+            return date.toLocaleString('en-IN', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                timeZone: 'Asia/Kolkata'
+            });
+        }
+
         async function verifyKey() {
-            const key = document.getElementById('keyInput').value;
+            const key = document.getElementById('keyInput').value.trim();
             if (!key) return alert('Please enter a key');
+            
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `<div class="loading">⏳ Verifying...</div>`;
             
             try {
                 const response = await fetch(`/verify/password?pass=${encodeURIComponent(key)}`);
                 const data = await response.json();
                 
-                const resultDiv = document.getElementById('result');
                 if (data.status === 'valid') {
-                    const expiry = new Date(data.expiry).toLocaleString();
+                    const expiry = formatTimestamp(data.expiry);
                     resultDiv.innerHTML = `<div class="result valid">
-                        ✅ Key Valid!<br>Expires: ${expiry}
+                        ✅ <strong>Key Valid!</strong><br>
+                        Key: ${key}<br>
+                        Expires: ${expiry}<br>
+                        <small>This key will work in your app</small>
                     </div>`;
                 } else {
                     resultDiv.innerHTML = `<div class="result invalid">
-                        ❌ Key Invalid or Expired
+                        ❌ <strong>Key Invalid or Expired</strong><br>
+                        ${data.message || 'Please generate a new key'}
                     </div>`;
                 }
             } catch (error) {
-                alert('Error verifying key: ' + error.message);
+                resultDiv.innerHTML = `<div class="result invalid">
+                    ❌ <strong>Error verifying key</strong><br>
+                    ${error.message}
+                </div>`;
             }
         }
         
         async function getNewKey() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `<div class="loading">⏳ Generating new key...</div>`;
+            
             try {
                 const response = await fetch('/getkey');
                 const data = await response.json();
                 
-                const resultDiv = document.getElementById('result');
-                const expiry = new Date(data.expiry).toLocaleString();
-                
-                resultDiv.innerHTML = `<div class="result valid">
-                    🔑 New Key Generated!<br>
-                    <strong>${data.key}</strong><br>
-                    Expires: ${expiry}<br>
-                    <small>Copy this key and use it in your app</small>
-                </div>`;
-                
-                // Auto-fill the input field
-                document.getElementById('keyInput').value = data.key;
+                if (data.key) {
+                    const expiry = formatTimestamp(data.expiry);
+                    resultDiv.innerHTML = `<div class="result valid">
+                        🔑 <strong>New Key Generated!</strong><br>
+                        <strong style="font-size: 1.2em;">${data.key}</strong><br>
+                        Expires: ${expiry}<br>
+                        <small>Copy this key and use it in your app</small>
+                    </div>`;
+                    
+                    // Auto-fill the input field
+                    document.getElementById('keyInput').value = data.key;
+                } else {
+                    throw new Error(data.message || 'No key received');
+                }
             } catch (error) {
-                alert('Error generating key: ' + error.message);
+                resultDiv.innerHTML = `<div class="result invalid">
+                    ❌ <strong>Error generating key</strong><br>
+                    ${error.message}
+                </div>`;
             }
         }
+
+        // Test on load
+        window.addEventListener('load', function() {
+            console.log('Key Verification System Loaded');
+        });
     </script>
 </body>
 </html>
