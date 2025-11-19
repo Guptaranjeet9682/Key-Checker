@@ -5,6 +5,7 @@ module.exports = async (req, res) => {
   // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET');
+  res.setHeader('Content-Type', 'application/json');
   
   const { pass } = req.query;
   
@@ -14,10 +15,16 @@ module.exports = async (req, res) => {
 
   try {
     const keysPath = path.join(process.cwd(), 'data', 'keys.json');
-    const keysData = JSON.parse(fs.readFileSync(keysPath, 'utf8'));
+    let keysData;
+    
+    try {
+      keysData = JSON.parse(fs.readFileSync(keysPath, 'utf8'));
+    } catch (error) {
+      return res.json({ status: 'invalid', message: 'No keys database found' });
+    }
     
     const keyData = keysData.keys[pass];
-    const currentTime = new Date().getTime();
+    const currentTime = Date.now();
     
     if (keyData && keyData.expiry > currentTime) {
       return res.json({ 
@@ -26,10 +33,14 @@ module.exports = async (req, res) => {
         created: keyData.created
       });
     } else {
-      return res.json({ status: 'invalid' });
+      return res.json({ status: 'invalid', message: 'Key expired or not found' });
     }
   } catch (error) {
     console.error('Verify error:', error);
-    return res.status(500).json({ status: 'error', message: 'Server error' });
+    return res.status(500).json({ 
+      status: 'error', 
+      message: 'Server error',
+      error: error.message 
+    });
   }
 };
