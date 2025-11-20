@@ -1,8 +1,9 @@
-const fs = require('fs');
-const path = require('path');
+const { MongoClient } = require('mongodb');
+
+const uri = "mongodb+srv://Anish_Gupta:Anish_Gupta@filestore.sa21pfy.mongodb.net/?appName=FileStore";
+const client = new MongoClient(uri);
 
 module.exports = async (req, res) => {
-  // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET');
   res.setHeader('Content-Type', 'application/json');
@@ -14,17 +15,14 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const keysPath = path.join(process.cwd(), 'data', 'keys.json');
-    let keysData;
-    
-    try {
-      keysData = JSON.parse(fs.readFileSync(keysPath, 'utf8'));
-    } catch (error) {
-      return res.json({ status: 'invalid', message: 'No keys database found' });
-    }
-    
-    const keyData = keysData.keys[pass];
+    await client.connect();
+    const database = client.db('key_database');
+    const keys = database.collection('keys');
+
     const currentTime = Date.now();
+    
+    // Find the key and check expiry
+    const keyData = await keys.findOne({ key: pass });
     
     if (keyData && keyData.expiry > currentTime) {
       return res.json({ 
@@ -33,6 +31,10 @@ module.exports = async (req, res) => {
         created: keyData.created
       });
     } else {
+      // Auto-delete expired key
+      if (keyData && keyData.expiry <= currentTime) {
+        await keys.deleteOne({ key: pass });
+      }
       return res.json({ status: 'invalid', message: 'Key expired or not found' });
     }
   } catch (error) {
@@ -42,5 +44,7 @@ module.exports = async (req, res) => {
       message: 'Server error',
       error: error.message 
     });
+  } finally {
+    await client.close();
   }
 };
