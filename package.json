@@ -1,11 +1,13 @@
 {
   "name": "key-verification-system",
   "version": "1.0.0",
-  "description": "Key verification system for Android APK",
+  "description": "Key verification system with MongoDB",
   "scripts": {
     "dev": "vercel dev"
   },
-  "dependencies": {},
+  "dependencies": {
+    "mongodb": "^5.8.0"
+  },
   "devDependencies": {
     "vercel": "^28.0.0"
   }
