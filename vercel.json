@@ -12,6 +12,11 @@
       "dest": "/api/getkey.js"
     },
     {
+      "src": "/cleanup",
+      "methods": ["GET"],
+      "dest": "/api/cleanup.js"
+    },
+    {
       "src": "/",
       "dest": "/public/index.html"
     }
