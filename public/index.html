@@ -5,26 +5,239 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
-        .container { background: #f5f5f5; padding: 20px; border-radius: 10px; }
-        input, button { padding: 10px; margin: 5px; border: 1px solid #ddd; border-radius: 5px; }
-        button { background: #0070f3; color: white; cursor: pointer; }
-        .result { margin-top: 20px; padding: 10px; border-radius: 5px; }
-        .valid { background: #d4edda; color: #155724; }
-        .invalid { background: #f8d7da; color: #721c24; }
-        .loading { background: #fff3cd; color: #856404; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            max-width: 900px; 
+            margin: 0 auto; 
+            padding: 20px; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container { 
+            background: white; 
+            padding: 30px; 
+            border-radius: 20px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.2em;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border-left: 4px solid #0070f3;
+        }
+        
+        .section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        input { 
+            padding: 14px; 
+            margin: 8px 0; 
+            border: 2px solid #e1e5e9; 
+            border-radius: 10px; 
+            width: 100%; 
+            font-size: 16px; 
+            transition: all 0.3s ease;
+        }
+        
+        input:focus {
+            border-color: #0070f3;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(0, 112, 243, 0.1);
+        }
+        
+        button { 
+            padding: 14px 24px; 
+            margin: 8px 5px; 
+            border: none; 
+            border-radius: 10px; 
+            cursor: pointer; 
+            font-size: 16px; 
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .verify-btn { 
+            background: #0070f3; 
+            color: white; 
+        }
+        .verify-btn:hover { background: #005cc5; }
+        
+        .generate-btn { 
+            background: #10b981; 
+            color: white; 
+        }
+        .generate-btn:hover { background: #0d9c6d; }
+        
+        .cleanup-btn { 
+            background: #f59e0b; 
+            color: white; 
+        }
+        .cleanup-btn:hover { background: #d97706; }
+        
+        .copy-btn {
+            background: #8b5cf6;
+            color: white;
+            padding: 10px 16px;
+            font-size: 14px;
+        }
+        .copy-btn:hover { background: #7c3aed; }
+        .copy-btn.copied { background: #10b981; }
+        
+        .result { 
+            margin-top: 20px; 
+            padding: 20px; 
+            border-radius: 12px; 
+            border-left: 5px solid;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .valid { 
+            background: #f0fdf4; 
+            border-color: #10b981; 
+            color: #065f46; 
+        }
+        
+        .invalid { 
+            background: #fef2f2; 
+            border-color: #ef4444; 
+            color: #991b1b; 
+        }
+        
+        .loading { 
+            background: #fffbeb; 
+            border-color: #f59e0b; 
+            color: #92400e; 
+        }
+        
+        .key-display { 
+            font-family: 'Courier New', monospace; 
+            font-size: 1.4em; 
+            font-weight: bold; 
+            background: #1f2937; 
+            color: #10b981; 
+            padding: 15px; 
+            border-radius: 8px; 
+            margin: 15px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .key-text {
+            word-break: break-all;
+        }
+        
+        .key-actions {
+            display: flex;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .feature {
+            text-align: center;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .feature-icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🔑 Key Verification System</h1>
+        <p class="subtitle">Secure key management with 36-hour automatic expiry</p>
         
-        <h3>Verify Key:</h3>
-        <input type="text" id="keyInput" placeholder="Enter your key">
-        <button onclick="verifyKey()">Verify Key</button>
+        <div class="feature-grid">
+            <div class="feature">
+                <div class="feature-icon">⏱️</div>
+                <h4>36 Hour Validity</h4>
+                <p>Keys automatically expire after 36 hours</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🔒</div>
+                <h4>Secure Verification</h4>
+                <p>MongoDB secured authentication</p>
+            </div>
+            <div class="feature">
+                <div class="feature-icon">🔄</div>
+                <h4>Auto Cleanup</h4>
+                <p>Expired keys automatically deleted</p>
+            </div>
+        </div>
         
-        <h3>Get New Key:</h3>
-        <button onclick="getNewKey()">Generate Key</button>
+        <div class="section">
+            <h3>🔍 Verify Existing Key</h3>
+            <input type="text" id="keyInput" placeholder="Paste your key here (e.g., MAI-XXXX-XXXX)">
+            <button class="verify-btn" onclick="verifyKey()">
+                <span>✅</span> Verify Key
+            </button>
+        </div>
+        
+        <div class="section">
+            <h3>🆕 Generate New Key</h3>
+            <p style="margin-bottom: 15px; color: #666;">Get a new key valid for 36 hours</p>
+            <button class="generate-btn" onclick="getNewKey()">
+                <span>🎯</span> Generate Key (36 Hours)
+            </button>
+        </div>
+        
+        <div class="section">
+            <h3>🧹 Maintenance</h3>
+            <p style="margin-bottom: 15px; color: #666;">Clean up expired keys from database</p>
+            <button class="cleanup-btn" onclick="cleanupKeys()">
+                <span>🗑️</span> Cleanup Expired Keys
+            </button>
+        </div>
         
         <div id="result"></div>
     </div>
@@ -39,17 +252,28 @@
                 day: 'numeric',
                 hour: '2-digit',
                 minute: '2-digit',
-                second: '2-digit',
                 timeZone: 'Asia/Kolkata'
+            });
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                // Success feedback will be handled in the button
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                alert('Failed to copy key: ' + err);
             });
         }
 
         async function verifyKey() {
             const key = document.getElementById('keyInput').value.trim();
-            if (!key) return alert('Please enter a key');
+            if (!key) return alert('Please enter a key to verify');
             
             const resultDiv = document.getElementById('result');
-            resultDiv.innerHTML = `<div class="loading">⏳ Verifying...</div>`;
+            resultDiv.innerHTML = `<div class="loading">
+                <strong>⏳ Verifying Key...</strong><br>
+                Checking key validity in database
+            </div>`;
             
             try {
                 const response = await fetch(`/verify/password?pass=${encodeURIComponent(key)}`);
@@ -58,28 +282,40 @@
                 if (data.status === 'valid') {
                     const expiry = formatTimestamp(data.expiry);
                     resultDiv.innerHTML = `<div class="result valid">
-                        ✅ <strong>Key Valid!</strong><br>
-                        Key: ${key}<br>
-                        Expires: ${expiry}<br>
-                        <small>This key will work in your app</small>
+                        <strong>✅ Key Valid!</strong><br><br>
+                        <div class="key-display">
+                            <span class="key-text">${key}</span>
+                            <div class="key-actions">
+                                <button class="copy-btn" onclick="copyToClipboard('${key}')">
+                                    📋 Copy
+                                </button>
+                            </div>
+                        </div>
+                        <strong>Expires:</strong> ${expiry}<br>
+                        <small>This key is active and will work in your Android app</small>
                     </div>`;
                 } else {
                     resultDiv.innerHTML = `<div class="result invalid">
-                        ❌ <strong>Key Invalid or Expired</strong><br>
-                        ${data.message || 'Please generate a new key'}
+                        <strong>❌ Key Invalid or Expired</strong><br><br>
+                        ${data.message || 'The key you entered is either expired or does not exist in our system.'}<br>
+                        <small>Please generate a new key using the button above.</small>
                     </div>`;
                 }
             } catch (error) {
                 resultDiv.innerHTML = `<div class="result invalid">
-                    ❌ <strong>Error verifying key</strong><br>
-                    ${error.message}
+                    <strong>❌ Error Verifying Key</strong><br><br>
+                    ${error.message}<br>
+                    <small>Please check your internet connection and try again.</small>
                 </div>`;
             }
         }
         
         async function getNewKey() {
             const resultDiv = document.getElementById('result');
-            resultDiv.innerHTML = `<div class="loading">⏳ Generating new key...</div>`;
+            resultDiv.innerHTML = `<div class="loading">
+                <strong>⏳ Generating New Key...</strong><br>
+                Creating secure key and storing in database
+            </div>`;
             
             try {
                 const response = await fetch('/getkey');
@@ -88,28 +324,82 @@
                 if (data.key) {
                     const expiry = formatTimestamp(data.expiry);
                     resultDiv.innerHTML = `<div class="result valid">
-                        🔑 <strong>New Key Generated!</strong><br>
-                        <strong style="font-size: 1.2em;">${data.key}</strong><br>
-                        Expires: ${expiry}<br>
-                        <small>Copy this key and use it in your app</small>
+                        <strong>🎉 New Key Generated!</strong><br><br>
+                        <div class="key-display">
+                            <span class="key-text">${data.key}</span>
+                            <div class="key-actions">
+                                <button class="copy-btn" onclick="handleCopy(this, '${data.key}')">
+                                    📋 Copy
+                                </button>
+                            </div>
+                        </div>
+                        <strong>Expires:</strong> ${expiry}<br>
+                        <small>Key has been saved to database. Copy and use it in your app.</small>
                     </div>`;
                     
                     // Auto-fill the input field
                     document.getElementById('keyInput').value = data.key;
                 } else {
-                    throw new Error(data.message || 'No key received');
+                    throw new Error(data.message || 'No key received from server');
                 }
             } catch (error) {
                 resultDiv.innerHTML = `<div class="result invalid">
-                    ❌ <strong>Error generating key</strong><br>
-                    ${error.message}
+                    <strong>❌ Error Generating Key</strong><br><br>
+                    ${error.message}<br>
+                    <small>Please try again or check server connection.</small>
                 </div>`;
             }
         }
 
-        // Test on load
-        window.addEventListener('load', function() {
-            console.log('Key Verification System Loaded');
+        function handleCopy(button, text) {
+            copyToClipboard(text);
+            // Visual feedback
+            const originalText = button.innerHTML;
+            button.innerHTML = '✅ Copied!';
+            button.classList.add('copied');
+            
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.classList.remove('copied');
+            }, 2000);
+        }
+
+        async function cleanupKeys() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `<div class="loading">
+                <strong>⏳ Cleaning Up...</strong><br>
+                Removing expired keys from database
+            </div>`;
+            
+            try {
+                const response = await fetch('/cleanup');
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `<div class="result valid">
+                    <strong>🧹 Cleanup Complete!</strong><br><br>
+                    ${data.message}<br>
+                    <small>All expired keys have been automatically deleted from MongoDB database.</small>
+                </div>`;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result invalid">
+                    <strong>❌ Cleanup Failed</strong><br><br>
+                    ${error.message}<br>
+                    <small>Please try again later.</small>
+                </div>`;
+            }
+        }
+
+        // Add click animation to buttons
+        document.addEventListener('DOMContentLoaded', function() {
+            const buttons = document.querySelectorAll('button');
+            buttons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.target.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        e.target.style.transform = 'scale(1)';
+                    }, 150);
+                });
+            });
         });
     </script>
 </body>
