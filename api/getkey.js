@@ -1,5 +1,7 @@
-const fs = require('fs');
-const path = require('path');
+const { MongoClient } = require('mongodb');
+
+const uri = "mongodb+srv://Anish_Gupta:Anish_Gupta@filestore.sa21pfy.mongodb.net/?appName=FileStore";
+const client = new MongoClient(uri);
 
 function generateKey() {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -12,44 +14,36 @@ function generateKey() {
 }
 
 module.exports = async (req, res) => {
-  // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET');
   res.setHeader('Content-Type', 'application/json');
-  
+
   try {
-    const keysPath = path.join(process.cwd(), 'data', 'keys.json');
-    let keysData;
-    
-    try {
-      keysData = JSON.parse(fs.readFileSync(keysPath, 'utf8'));
-    } catch (error) {
-      // If file doesn't exist, create new structure
-      keysData = { keys: {} };
-    }
-    
+    await client.connect();
+    const database = client.db('key_database');
+    const keys = database.collection('keys');
+
     const newKey = generateKey();
     const currentTime = Date.now();
     const expiryTime = currentTime + (36 * 60 * 60 * 1000); // 36 hours
-    
-    // Create proper key structure
-    keysData.keys[newKey] = {
+
+    const keyDocument = {
+      key: newKey,
       created: currentTime,
       expiry: expiryTime,
-      used: false
+      used: false,
+      createdAt: new Date()
     };
-    
-    // Write back to file
-    fs.writeFileSync(keysPath, JSON.stringify(keysData, null, 2));
-    
-    // Send proper response with string dates for frontend
+
+    const result = await keys.insertOne(keyDocument);
+
     res.json({
       key: newKey,
       expiry: expiryTime,
       created: currentTime,
       message: "Key generated successfully. Valid for 36 hours."
     });
-    
+
   } catch (error) {
     console.error('GetKey error:', error);
     res.status(500).json({ 
@@ -57,5 +51,7 @@ module.exports = async (req, res) => {
       message: 'Failed to generate key',
       error: error.message 
     });
+  } finally {
+    await client.close();
   }
 };
