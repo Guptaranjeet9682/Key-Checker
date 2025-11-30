@@ -1,0 +1,43 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/**/*.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "public/**/*",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/",
+      "dest": "/public/index.html"
+    },
+    {
+      "src": "/admin",
+      "dest": "/public/admin.html"
+    },
+    {
+      "src": "/keys",
+      "dest": "/api/keys.js"
+    },
+    {
+      "src": "/getkey/(.*)",
+      "dest": "/api/getkey.js"
+    },
+    {
+      "src": "/verify",
+      "dest": "/api/verify.js"
+    },
+    {
+      "src": "/admin/api",
+      "dest": "/api/admin.js"
+    },
+    {
+      "src": "/admin/login",
+      "dest": "/api/admin-login.js"
+    }
+  ]
+}
