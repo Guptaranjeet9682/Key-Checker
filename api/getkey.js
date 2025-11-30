@@ -1,57 +1,78 @@
-const { MongoClient } = require('mongodb');
+const { 
+    keysDatabase, 
+    generateRandomKey, 
+    getExpiryDate,
+    cleanupExpiredKeys 
+} = require('../utils/database');
 
-const uri = "mongodb+srv://Anish_Gupta:Anish_Gupta@filestore.sa21pfy.mongodb.net/?appName=FileStore";
-const client = new MongoClient(uri);
-
-function generateKey() {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let key = 'MAI-';
-  for (let i = 0; i < 8; i++) {
-    key += chars.charAt(Math.floor(Math.random() * chars.length));
-    if (i === 3) key += '-';
-  }
-  return key;
-}
-
-module.exports = async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET');
-  res.setHeader('Content-Type', 'application/json');
-
-  try {
-    await client.connect();
-    const database = client.db('key_database');
-    const keys = database.collection('keys');
-
-    const newKey = generateKey();
-    const currentTime = Date.now();
-    const expiryTime = currentTime + (36 * 60 * 60 * 1000); // 36 hours
-
-    const keyDocument = {
-      key: newKey,
-      created: currentTime,
-      expiry: expiryTime,
-      used: false,
-      createdAt: new Date()
-    };
-
-    const result = await keys.insertOne(keyDocument);
-
-    res.json({
-      key: newKey,
-      expiry: expiryTime,
-      created: currentTime,
-      message: "Key generated successfully. Valid for 36 hours."
-    });
-
-  } catch (error) {
-    console.error('GetKey error:', error);
-    res.status(500).json({ 
-      status: 'error', 
-      message: 'Failed to generate key',
-      error: error.message 
-    });
-  } finally {
-    await client.close();
-  }
+module.exports = (req, res) => {
+    // Set CORS headers
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Content-Type', 'application/json');
+    
+    if (req.method === 'GET') {
+        try {
+            // Extract parameters from URL
+            const urlParts = req.url.split('/');
+            const username = urlParts[2]; // After /getkey/
+            
+            // Extract device_id from query parameters
+            const urlParams = new URLSearchParams(req.url.split('?')[1]);
+            const deviceId = urlParams.get('device-id');
+            
+            if (!username || !deviceId) {
+                return res.status(400).json({ 
+                    error: 'Missing parameters',
+                    message: 'Username and device-id are required' 
+                });
+            }
+            
+            // Clean up expired keys first
+            cleanupExpiredKeys();
+            
+            // Check if device already has a key
+            const existingKeyIndex = keysDatabase.findIndex(k => k.device_id === deviceId);
+            
+            if (existingKeyIndex !== -1) {
+                // Update existing key
+                const newKey = generateRandomKey();
+                const expiryDate = getExpiryDate();
+                
+                keysDatabase[existingKeyIndex] = {
+                    device_id: deviceId,
+                    key: newKey,
+                    expirydate: expiryDate,
+                    Allowoffline: false,
+                    username: username,
+                    created_at: new Date().toISOString()
+                };
+                
+                res.status(200).json(keysDatabase[existingKeyIndex]);
+            } else {
+                // Create new key
+                const newKey = generateRandomKey();
+                const expiryDate = getExpiryDate();
+                
+                const keyData = {
+                    device_id: deviceId,
+                    key: newKey,
+                    expirydate: expiryDate,
+                    Allowoffline: false,
+                    username: username,
+                    created_at: new Date().toISOString()
+                };
+                
+                keysDatabase.push(keyData);
+                res.status(201).json(keyData);
+            }
+            
+        } catch (error) {
+            res.status(500).json({ 
+                error: 'Internal server error',
+                message: error.message 
+            });
+        }
+    } else {
+        res.status(405).json({ error: 'Method not allowed' });
+    }
 };
