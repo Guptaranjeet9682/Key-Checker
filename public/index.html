@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Key Checker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .content {
+            padding: 40px;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+            padding: 25px;
+            border: 2px solid #e3f2fd;
+            border-radius: 10px;
+            background: #f8fdff;
+        }
+        
+        .section h2 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        
+        .endpoint {
+            background: #2c3e50;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            word-break: break-all;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .result {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .admin-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .admin-btn {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔑 Key Checker System</h1>
+            <p>Manage and verify your application keys</p>
+        </div>
+        
+        <div class="content">
+            <div class="section">
+                <h2>📊 Get All Keys</h2>
+                <p>Retrieve all active keys in the system:</p>
+                <div class="endpoint">GET /keys</div>
+                <button class="btn" onclick="getAllKeys()">Fetch All Keys</button>
+                <div class="result" id="keysResult"></div>
+            </div>
+            
+            <div class="section">
+                <h2>🎫 Generate New Key</h2>
+                <p>Generate a new key for a device:</p>
+                <div class="endpoint">GET /getkey/{username}/device-id={device_id}</div>
+                <input type="text" id="username" placeholder="Username" style="padding: 10px; margin: 5px; border: 1px solid #ddd; border-radius: 5px; width: 200px;">
+                <input type="text" id="deviceId" placeholder="Device ID" style="padding: 10px; margin: 5px; border: 1px solid #ddd; border-radius: 5px; width: 200px;">
+                <button class="btn" onclick="generateKey()">Generate Key</button>
+                <div class="result" id="generateResult"></div>
+            </div>
+            
+            <div class="section">
+                <h2>✅ Verify Key</h2>
+                <p>Verify if a key is valid:</p>
+                <div class="endpoint">POST /verify</div>
+                <input type="text" id="verifyKey" placeholder="Key" style="padding: 10px; margin: 5px; border: 1px solid #ddd; border-radius: 5px; width: 200px;">
+                <input type="text" id="verifyDeviceId" placeholder="Device ID" style="padding: 10px; margin: 5px; border: 1px solid #ddd; border-radius: 5px; width: 200px;">
+                <button class="btn" onclick="verifyKey()">Verify Key</button>
+                <div class="result" id="verifyResult"></div>
+            </div>
+            
+            <div class="admin-link">
+                <button class="btn admin-btn" onclick="goToAdmin()">🔧 Admin Panel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function getAllKeys() {
+            try {
+                const response = await fetch('/keys');
+                const data = await response.json();
+                document.getElementById('keysResult').innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            } catch (error) {
+                document.getElementById('keysResult').innerHTML = 'Error: ' + error.message;
+            }
+        }
+        
+        async function generateKey() {
+            const username = document.getElementById('username').value;
+            const deviceId = document.getElementById('deviceId').value;
+            
+            if (!username || !deviceId) {
+                alert('Please enter both username and device ID');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/getkey/${username}/device-id=${deviceId}`);
+                const data = await response.json();
+                document.getElementById('generateResult').innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            } catch (error) {
+                document.getElementById('generateResult').innerHTML = 'Error: ' + error.message;
+            }
+        }
+        
+        async function verifyKey() {
+            const key = document.getElementById('verifyKey').value;
+            const deviceId = document.getElementById('verifyDeviceId').value;
+            
+            if (!key || !deviceId) {
+                alert('Please enter both key and device ID');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/verify', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ key, device_id: deviceId })
+                });
+                const data = await response.json();
+                document.getElementById('verifyResult').innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            } catch (error) {
+                document.getElementById('verifyResult').innerHTML = 'Error: ' + error.message;
+            }
+        }
+        
+        function goToAdmin() {
+            window.location.href = '/admin';
+        }
+    </script>
+</body>
+</html>
