@@ -6,24 +6,45 @@ const {
 } = require('./utils/database');
 
 module.exports = (req, res) => {
-    // Set CORS headers
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Content-Type', 'application/json');
     
     if (req.method === 'GET') {
         try {
-            // Extract parameters from URL
-            const urlParts = req.url.split('/');
-            const username = urlParts[2]; // After /getkey/
+            // FIXED: Better URL parsing
+            const urlPath = req.url;
+            console.log('Request URL:', urlPath); // Debug log
             
-            // Extract device_id from query parameters
-            const urlParams = new URLSearchParams(req.url.split('?')[1]);
-            const deviceId = urlParams.get('device-id');
+            // Extract username and device-id from URL pattern: /getkey/username/device-id=value
+            const parts = urlPath.split('/');
+            console.log('URL Parts:', parts); // Debug log
+            
+            if (parts.length < 3) {
+                return res.status(400).json({ 
+                    error: 'Invalid URL format',
+                    message: 'Use format: /getkey/username/device-id=your_device_id' 
+                });
+            }
+            
+            const username = parts[2];
+            let deviceId = null;
+            
+            // Extract device-id from the last part
+            const lastPart = parts[parts.length - 1];
+            if (lastPart.includes('device-id=')) {
+                deviceId = lastPart.split('device-id=')[1];
+            }
+            
+            // Also check query parameters as fallback
+            if (!deviceId) {
+                const urlParams = new URLSearchParams(urlPath.split('?')[1]);
+                deviceId = urlParams.get('device-id');
+            }
             
             if (!username || !deviceId) {
                 return res.status(400).json({ 
                     error: 'Missing parameters',
-                    message: 'Username and device-id are required' 
+                    message: 'Username and device-id are required. Format: /getkey/username/device-id=your_device' 
                 });
             }
             
@@ -67,6 +88,7 @@ module.exports = (req, res) => {
             }
             
         } catch (error) {
+            console.error('Error in getkey:', error);
             res.status(500).json({ 
                 error: 'Internal server error',
                 message: error.message 
