@@ -1,4 +1,11 @@
-const { keysDatabase, isKeyExpired, cleanupExpiredKeys } = require('../utils/database');
+const { keysDatabase, isKeyExpired, cleanupExpiredKeys } = require('./utils/database');
+
+function isKeyExpired(expiryDate) {
+    const [day, month, year] = expiryDate.split('-').map(Number);
+    const expiry = new Date(year, month - 1, day);
+    const now = new Date();
+    return now > expiry;
+}
 
 module.exports = (req, res) => {
     // Set CORS headers
