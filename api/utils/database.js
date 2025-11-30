@@ -1,9 +1,10 @@
-// Simple in-memory database - NO BCRYPT
+// SIMPLE DATABASE - No complex dependencies
 let keysDatabase = [];
-let adminSettings = {
-    username: "admin",
-    password: "admin123", // Simple password for now
-    isLoggedIn: false
+
+// ADMIN CREDENTIALS - Change these values
+let adminCredentials = {
+    username: "admin",      // CHANGE THIS
+    password: "admin123"    // CHANGE THIS
 };
 
 // Generate random key
@@ -43,10 +44,16 @@ function cleanupExpiredKeys() {
     return initialLength - keysDatabase.length;
 }
 
+// Simple admin authentication
+function verifyAdmin(username, password) {
+    return username === adminCredentials.username && password === adminCredentials.password;
+}
+
 // Export functions
 module.exports = {
     keysDatabase,
-    adminSettings,
+    adminCredentials,
+    verifyAdmin,
     generateRandomKey,
     getExpiryDate,
     isKeyExpired,
