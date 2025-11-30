@@ -1,4 +1,3 @@
-const bcrypt = require('bcryptjs');
 const { adminSettings } = require('./utils/database');
 
 module.exports = async (req, res) => {
@@ -16,7 +15,7 @@ module.exports = async (req, res) => {
             try {
                 const { username, password } = JSON.parse(body);
                 
-                if (username === adminSettings.username && await bcrypt.compare(password, adminSettings.password)) {
+                if (username === adminSettings.username && password === adminSettings.password) {
                     adminSettings.isLoggedIn = true;
                     res.status(200).json({ 
                         success: true, 
@@ -31,7 +30,7 @@ module.exports = async (req, res) => {
             } catch (error) {
                 res.status(500).json({ 
                     success: false, 
-                    message: 'Server error' 
+                    message: 'Server error: ' + error.message 
                 });
             }
         });
