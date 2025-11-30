@@ -1,5 +1,12 @@
 const { keysDatabase, adminSettings, cleanupExpiredKeys } = require('./utils/database');
 
+function isKeyExpired(expiryDate) {
+    const [day, month, year] = expiryDate.split('-').map(Number);
+    const expiry = new Date(year, month - 1, day);
+    const now = new Date();
+    return now > expiry;
+}
+
 // Check admin authentication
 function checkAdminAuth(req) {
     return adminSettings.isLoggedIn;
@@ -85,10 +92,3 @@ module.exports = (req, res) => {
         res.status(405).json({ error: 'Method not allowed' });
     }
 };
-
-function isKeyExpired(expiryDate) {
-    const [day, month, year] = expiryDate.split('-').map(Number);
-    const expiry = new Date(year, month - 1, day);
-    const now = new Date();
-    return now > expiry;
-}
