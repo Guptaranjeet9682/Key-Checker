@@ -1,8 +1,8 @@
-// Advanced in-memory database with admin security
+// Simple in-memory database - NO BCRYPT
 let keysDatabase = [];
 let adminSettings = {
     username: "admin",
-    password: "$2a$10$8K1p/a0dRT1C9.2F6dQwEe6dQdQdQdQdQdQdQdQdQdQdQdQdQdQ", // password: admin123
+    password: "admin123", // Simple password for now
     isLoggedIn: false
 };
 
