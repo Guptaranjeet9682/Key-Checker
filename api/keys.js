@@ -1,4 +1,4 @@
-const { keysDatabase, cleanupExpiredKeys } = require('../utils/database');
+const { keysDatabase, cleanupExpiredKeys } = require('./utils/database');
 
 module.exports = (req, res) => {
     // Set CORS headers
