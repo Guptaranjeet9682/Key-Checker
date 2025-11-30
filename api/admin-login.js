@@ -1,4 +1,4 @@
-const { adminSettings } = require('./utils/database');
+const { verifyAdmin } = require('./utils/database');
 
 module.exports = async (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -15,8 +15,7 @@ module.exports = async (req, res) => {
             try {
                 const { username, password } = JSON.parse(body);
                 
-                if (username === adminSettings.username && password === adminSettings.password) {
-                    adminSettings.isLoggedIn = true;
+                if (verifyAdmin(username, password)) {
                     res.status(200).json({ 
                         success: true, 
                         message: 'Login successful' 
