@@ -3,7 +3,7 @@ const {
     generateRandomKey, 
     getExpiryDate,
     cleanupExpiredKeys 
-} = require('../utils/database');
+} = require('./utils/database');
 
 module.exports = (req, res) => {
     // Set CORS headers
