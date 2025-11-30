@@ -1,0 +1,41 @@
+const bcrypt = require('bcryptjs');
+const { adminSettings } = require('./utils/database');
+
+module.exports = async (req, res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Content-Type', 'application/json');
+    
+    if (req.method === 'POST') {
+        let body = '';
+        
+        req.on('data', chunk => {
+            body += chunk.toString();
+        });
+        
+        req.on('end', async () => {
+            try {
+                const { username, password } = JSON.parse(body);
+                
+                if (username === adminSettings.username && await bcrypt.compare(password, adminSettings.password)) {
+                    adminSettings.isLoggedIn = true;
+                    res.status(200).json({ 
+                        success: true, 
+                        message: 'Login successful' 
+                    });
+                } else {
+                    res.status(401).json({ 
+                        success: false, 
+                        message: 'Invalid credentials' 
+                    });
+                }
+            } catch (error) {
+                res.status(500).json({ 
+                    success: false, 
+                    message: 'Server error' 
+                });
+            }
+        });
+    } else {
+        res.status(405).json({ error: 'Method not allowed' });
+    }
+};
