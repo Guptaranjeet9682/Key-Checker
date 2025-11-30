@@ -1,4 +1,4 @@
-const { keysDatabase, adminSettings, cleanupExpiredKeys } = require('./utils/database');
+const { keysDatabase, verifyAdmin, cleanupExpiredKeys } = require('./utils/database');
 
 function isKeyExpired(expiryDate) {
     const [day, month, year] = expiryDate.split('-').map(Number);
@@ -7,40 +7,34 @@ function isKeyExpired(expiryDate) {
     return now > expiry;
 }
 
-// Check admin authentication
-function checkAdminAuth(req) {
-    return adminSettings.isLoggedIn;
-}
-
 module.exports = (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Content-Type', 'application/json');
     
-    // Check admin authentication for all routes
-    if (!checkAdminAuth(req)) {
-        return res.status(401).json({ 
-            error: 'Unauthorized',
-            message: 'Please login to admin panel first' 
-        });
-    }
-    
     if (req.method === 'GET') {
-        // Return enhanced admin data
-        const deletedCount = cleanupExpiredKeys();
-        const now = new Date();
-        
-        const stats = {
-            total_keys: keysDatabase.length,
-            active_keys: keysDatabase.filter(key => !isKeyExpired(key.expirydate)).length,
-            expired_keys: keysDatabase.filter(key => isKeyExpired(key.expirydate)).length,
-            auto_deleted: deletedCount,
-            server_time: now.toISOString()
-        };
-        
-        res.status(200).json({
-            stats: stats,
-            keys: keysDatabase
-        });
+        try {
+            // Return enhanced admin data
+            const deletedCount = cleanupExpiredKeys();
+            const now = new Date();
+            
+            const stats = {
+                total_keys: keysDatabase.length,
+                active_keys: keysDatabase.filter(key => !isKeyExpired(key.expirydate)).length,
+                expired_keys: keysDatabase.filter(key => isKeyExpired(key.expirydate)).length,
+                auto_deleted: deletedCount,
+                server_time: now.toISOString()
+            };
+            
+            res.status(200).json({
+                stats: stats,
+                keys: keysDatabase
+            });
+        } catch (error) {
+            res.status(500).json({
+                success: false,
+                message: 'Server error: ' + error.message
+            });
+        }
     } else if (req.method === 'POST') {
         let body = '';
         
@@ -50,7 +44,15 @@ module.exports = (req, res) => {
         
         req.on('end', () => {
             try {
-                const { action, key } = JSON.parse(body);
+                const { action, key, username, password } = JSON.parse(body);
+                
+                // Verify admin for destructive actions
+                if (action !== 'get_stats' && (!username || !password || !verifyAdmin(username, password))) {
+                    return res.status(401).json({
+                        success: false,
+                        message: 'Admin authentication required'
+                    });
+                }
                 
                 if (action === 'delete_expired') {
                     const deletedCount = cleanupExpiredKeys();
@@ -69,12 +71,15 @@ module.exports = (req, res) => {
                         message: deleted > 0 ? 'Key deleted successfully' : 'Key not found',
                         deleted: deleted
                     });
-                } else if (action === 'logout') {
-                    adminSettings.isLoggedIn = false;
-                    res.status(200).json({
-                        success: true,
-                        message: 'Logged out successfully'
-                    });
+                } else if (action === 'get_stats') {
+                    const deletedCount = cleanupExpiredKeys();
+                    const stats = {
+                        total_keys: keysDatabase.length,
+                        active_keys: keysDatabase.filter(key => !isKeyExpired(key.expirydate)).length,
+                        expired_keys: keysDatabase.filter(key => isKeyExpired(key.expirydate)).length,
+                        auto_deleted: deletedCount
+                    };
+                    res.status(200).json({ success: true, stats: stats });
                 } else {
                     res.status(400).json({
                         success: false,
@@ -84,7 +89,7 @@ module.exports = (req, res) => {
             } catch (error) {
                 res.status(500).json({
                     success: false,
-                    message: 'Server error'
+                    message: 'Server error: ' + error.message
                 });
             }
         });
