@@ -3,8 +3,8 @@ let keysDatabase = [];
 
 // ADMIN CREDENTIALS - Change these values
 let adminCredentials = {
-    username: "admin",      // CHANGE THIS
-    password: "admin123"    // CHANGE THIS
+    username: "ANISH@123",      // CHANGE THIS
+    password: "ANISH@123"    // CHANGE THIS
 };
 
 // Generate random key
